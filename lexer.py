@@ -21,83 +21,66 @@ class Lexer:
 
     def __init__(self, filename):
         self.filename = filename
-        self.__tokens = self.__scan(filename)
-        self.position = 0
+        self.line_number = 0
+        self.line_position = 0
+
+        self.__fd = open(filename, 'r')
+        self.__pushback = []
+
+    def push_back(self, token):
+        self.__pushback.append(token)
 
     def get(self):
-        # The last token was served
-        if self.position == len(self.__tokens):
+
+        if self.__pushback:
+            return self.__pushback.pop()
+
+        curr = self.__fd.read(1)
+        self.line_position += 1
+        if not curr:
             return None
 
-        value = self.__tokens[self.position]
-        self.position += 1
-        return value
+        if curr == ' ':
+            return self.get()
 
-    @staticmethod
-    def __scan(filename):
-        res = []
-        buffer = ""
-        line_number = 0
-        line_position = 0
-        with open(filename, 'r') as fd:
+        if curr == '\n':
+            self.line_position = 0
+            self.line_number += 1
+            return self.get()
 
+        if curr in Lexer.operators:
+            res = None
+            if curr == "+":
+                res = Token(TokenType.OpPlus)
+            if curr == "-":
+                res = Token(TokenType.OpMinus)
+            if curr == "*":
+                res = Token(TokenType.OpMultiply)
+            if curr == "<":
+                res = Token(TokenType.OpLessThan)
+            if curr == ">":
+                res = Token(TokenType.OpMoreThan)
+            if curr == "=":
+                res = Token(TokenType.OpEquals)
+
+        elif curr in Lexer.delimiters:
+            if curr == "(":
+                return Token(TokenType.LeftParen)
+            if curr == ")":
+                return Token(TokenType.RightParen)
+
+        elif curr.isdigit():
+            res = curr
             while True:
-                curr = fd.read(1)
-                line_position += 1
-                if not curr:
-                    if buffer != "":
-                        res.append(Token(TokenType.Literal, buffer))
-                    break
-
-                if curr == ' ':
-                    if buffer != "":
-                        res.append(Token(TokenType.Literal, buffer))
-                        buffer = ""
-                    continue
-
-                if curr in Lexer.operators:
-                    if buffer != "":
-                        res.append(Token(TokenType.Literal, buffer))
-                        buffer = ""
-
-                    if curr == "+":
-                        res.append(Token(TokenType.Operator.Plus))
-                    if curr == "-":
-                        res.append(Token(TokenType.Operator.Minus))
-                    if curr == "*":
-                        res.append(Token(TokenType.Operator.Multiply))
-                    if curr == "<":
-                        res.append(Token(TokenType.Operator.LessThan))
-                    if curr == ">":
-                        res.append(Token(TokenType.Operator.MoreThan))
-                    if curr == "=":
-                        res.append(Token(TokenType.Operator.Equals))
-
-                elif curr in Lexer.delimiters:
-                    if buffer != "":
-                        res.append(Token(TokenType.Literal, buffer))
-                        buffer = ""
-
-                    if curr == ";":
-                        res.append(Token(TokenType.Delimiter.Semicolon))
-                    if curr == "(":
-                        res.append(Token(TokenType.Delimiter.LeftParen))
-                    if curr == ")":
-                        res.append(Token(TokenType.Delimiter.RightParen))
-                    if curr == "\n":
-                        line_number += 1
-                        line_position = 0
-                        res.append(Token(TokenType.Delimiter.NewLine))
-                elif curr.isdigit():
-                    if buffer == "0":
-                        raise LexicalException(filename, (line_number, line_position - 1),
-                                               "illegal integer literal: cannot start with \'0\'")
-
-                    buffer += curr
+                curr = self.get()
+                if curr.isdigit():
+                    res += curr
                 else:
-                    raise LexicalException(filename, (line_number, line_position),
-                                           "illegal symbol \'{}\': not a token".format(curr))
-        return res
+                    self.push_back(curr)
+                    return curr
+        else:
+            raise LexicalException(self.filename, (self.line_number, self.line_position),
+                                   "illegal symbol \'{}\': not a token".format(curr))
 
 
 class Error(Exception):
