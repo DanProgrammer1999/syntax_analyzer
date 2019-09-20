@@ -1,5 +1,5 @@
 from token_types import TokenType
-
+from exceptions import LexicalException
 
 class Token:
     def __init__(self, token_type, literal_value=None):
@@ -16,8 +16,6 @@ class Token:
 
 
 class Lexer:
-    delimiters = "()"
-    operators = "*+-<>="
 
     def __init__(self, filename):
         self.filename = filename
@@ -53,59 +51,35 @@ class Lexer:
                     return Token(token_type, curr)
                 elif curr.isdigit():
                     res += curr
-                elif curr in " \n\t":
-                    return Token(token_type, res)
                 else:
-                    self.push_back(Token(self.__resolve_type(curr)))
+                    # If the current char is meaningful
+                    if curr not in " \n\t":
+                        self.push_back(Token(self.__resolve_type(curr)))
                     return Token(token_type, res)
         else:
             return Token(token_type)
 
     @staticmethod
     def __resolve_type(token):
-        if token in Lexer.operators:
-            if token == "+":
-                return TokenType.OpPlus
-            if token == "-":
-                return TokenType.OpMinus
-            if token == "*":
-                return TokenType.OpMultiply
-            if token == "<":
-                return TokenType.OpLessThan
-            if token == ">":
-                return TokenType.OpMoreThan
-            if token == "=":
-                return TokenType.OpEquals
-
-        elif token in Lexer.delimiters:
-            if token == "(":
-                return TokenType.LeftParen
-            if token == ")":
-                return TokenType.RightParen
-        elif token.isdigit():
+        if token == "+":
+            return TokenType.OpPlus
+        if token == "-":
+            return TokenType.OpMinus
+        if token == "*":
+            return TokenType.OpMultiply
+        if token == "<":
+            return TokenType.OpLessThan
+        if token == ">":
+            return TokenType.OpMoreThan
+        if token == "=":
+            return TokenType.OpEquals
+        if token == "(":
+            return TokenType.LeftParen
+        if token == ")":
+            return TokenType.RightParen
+        if token.isdigit():
             return TokenType.Literal
-        elif token in " \n\t":
+        if token in " \n\t":
             return 0
-        else:
-            return -1
 
-
-class Error(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class LexicalException(Error):
-    def __init__(self, filename=None, position: tuple = None, custom_text=None):
-        text = "Lexical Exception"
-        if filename:
-            text += " in {}".format(filename)
-        if position:
-            text += " at line {}, position {}".format(position[0], position[1])
-        if custom_text:
-            text += ": {}".format(custom_text)
-        text += '.'
-        self.value = text
+        return -1
