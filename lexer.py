@@ -22,6 +22,12 @@ class Lexer:
     def __init__(self, filename):
         self.filename = filename
         self.__tokens = self.__scan(filename)
+        self.position = 0
+
+    def get(self):
+        value = self.__tokens[self.position]
+        self.position += 1
+        return value
 
     @staticmethod
     def __scan(filename):
