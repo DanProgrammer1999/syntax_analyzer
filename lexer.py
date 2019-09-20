@@ -16,7 +16,7 @@ class Token:
 
 
 class Lexer:
-    delimiters = "\n;()"
+    delimiters = "()"
     operators = "*+-<>="
 
     def __init__(self, filename):
@@ -36,51 +36,58 @@ class Lexer:
             return self.__pushback.pop()
 
         curr = self.__fd.read(1)
-        self.line_position += 1
         if not curr:
             return None
 
-        if curr == ' ':
+        token_type = self.__resolve_type(curr)
+        if token_type == -1:
+            raise LexicalException(self.filename, (self.line_number, self.line_position),
+                                   "illegal character: \'{}\'".format(curr))
+        elif token_type == 0:
             return self.get()
-
-        if curr == '\n':
-            self.line_position = 0
-            self.line_number += 1
-            return self.get()
-
-        if curr in Lexer.operators:
-            res = None
-            if curr == "+":
-                res = Token(TokenType.OpPlus)
-            if curr == "-":
-                res = Token(TokenType.OpMinus)
-            if curr == "*":
-                res = Token(TokenType.OpMultiply)
-            if curr == "<":
-                res = Token(TokenType.OpLessThan)
-            if curr == ">":
-                res = Token(TokenType.OpMoreThan)
-            if curr == "=":
-                res = Token(TokenType.OpEquals)
-
-        elif curr in Lexer.delimiters:
-            if curr == "(":
-                return Token(TokenType.LeftParen)
-            if curr == ")":
-                return Token(TokenType.RightParen)
-
-        elif curr.isdigit():
+        elif token_type is TokenType.Literal:
             res = curr
             while True:
-                curr = self.get()
-                if curr.isdigit():
+                curr = self.__fd.read(1)
+                if curr is None:
+                    return Token(token_type, curr)
+                elif curr.isdigit():
                     res += curr
+                elif curr in " \n\t":
+                    return Token(token_type, res)
                 else:
-                    self.push_back(curr)
-                    return curr
+                    self.push_back(Token(self.__resolve_type(curr)))
+                    return Token(token_type, res)
         else:
-            raise LexicalException(self.filename, (self.line_number, self.line_position),
-                                   "illegal symbol \'{}\': not a token".format(curr))
+            return Token(token_type)
+
+    @staticmethod
+    def __resolve_type(token):
+        if token in Lexer.operators:
+            if token == "+":
+                return TokenType.OpPlus
+            if token == "-":
+                return TokenType.OpMinus
+            if token == "*":
+                return TokenType.OpMultiply
+            if token == "<":
+                return TokenType.OpLessThan
+            if token == ">":
+                return TokenType.OpMoreThan
+            if token == "=":
+                return TokenType.OpEquals
+
+        elif token in Lexer.delimiters:
+            if token == "(":
+                return TokenType.LeftParen
+            if token == ")":
+                return TokenType.RightParen
+        elif token.isdigit():
+            return TokenType.Literal
+        elif token in " \n\t":
+            return 0
+        else:
+            return -1
 
 
 class Error(Exception):
