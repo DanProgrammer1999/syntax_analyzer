@@ -17,7 +17,7 @@ class DelimiterType(Enum):
     NewLine = 3
 
 
-class Token(Enum):
+class TokenType:
     Operator = OperatorType
     Delimiter = DelimiterType
     Literal = 0
