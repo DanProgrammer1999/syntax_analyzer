@@ -12,3 +12,6 @@ class TokenType(Enum):
     OpMinus = auto()
     OpPlus = auto()
     OpMultiply = auto()
+
+    Unknown = auto()
+    Space = auto()
