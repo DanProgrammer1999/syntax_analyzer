@@ -28,7 +28,6 @@ class Lexer:
         # The last token was served
         if self.position == len(self.__tokens):
             return None
-
         value = self.__tokens[self.position]
         self.position += 1
         return value
