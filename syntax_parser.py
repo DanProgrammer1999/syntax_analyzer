@@ -12,6 +12,14 @@ class AstNode:
         # For pptree lib
         self.name = self.__repr__()
 
+    @property
+    def type(self):
+        return self.__token.type
+
+    @property
+    def value(self):
+        return self.__token.value
+
     def __repr__(self):
         s = str(self.__token.type)
         if self.__token.type is TokenType.Literal:
@@ -41,7 +49,7 @@ class Parser:
         res = self.__parse_expression()
         t = self.__lexer.get()
         if t:
-            raise UnexpectedTokenException(self.filename, self.__lexer.get_position(), t)
+            raise UnexpectedTokenException(self.filename, self.__lexer.get_position(), t.value)
 
         return res
 
@@ -112,7 +120,7 @@ class Parser:
         elif left.type is TokenType.Literal:
             return AstNode(left)
         else:
-            raise UnexpectedTokenException(self.filename, self.__lexer.get_position(), left)
+            raise UnexpectedTokenException(self.filename, self.__lexer.get_position(), left.value)
 
     @staticmethod
     def __make_binary_tree(parent: AstNode, child1: AstNode, child2: AstNode):

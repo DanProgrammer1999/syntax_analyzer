@@ -17,7 +17,7 @@ class SyntaxError(Error):
 
 class UnexpectedTokenException(SyntaxError):
     def __init__(self, filename, position, token):
-        super().__init__(filename, position, "unexpected token: {}".format(token))
+        super().__init__(filename, position, "unexpected token: \'{}\'".format(token))
 
 
 class UnexpectedEOF(SyntaxError):
