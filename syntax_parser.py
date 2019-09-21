@@ -8,7 +8,8 @@ class AstNode:
         self.__token = token
         self.parent = None
         self.children = []
-        # For ptree lib
+
+        # For pptree lib
         self.name = self.__repr__()
 
     def __repr__(self):
@@ -20,10 +21,21 @@ class AstNode:
 
 
 class Parser:
-    def __init__(self, filename):
-        self.filename = filename
-        self.__lexer = Lexer(self.filename)
-        self.tree = self.__construct_tree()
+    def __init__(self, filename=None):
+        if filename:
+            self.__lexer = Lexer(filename)
+            self.filename = filename
+
+    def parse(self, filename=None):
+        if filename:
+            self.filename = filename
+            self.__lexer = Lexer(filename)
+
+        if not filename and not self.filename:
+            print("No filename provided!")
+            return None
+
+        return self.__construct_tree()
 
     def __construct_tree(self):
         res = self.__parse_expression()
@@ -47,7 +59,6 @@ class Parser:
         if parent.type not in expected_types:
             self.__lexer.push_back(parent)
             return left
-            # raise UnexpectedTokenException(self.filename, "expected either of these symbols: \'>\', \'<\', or \'=\'")
 
         right = self.__parse_term()
 
@@ -109,20 +120,3 @@ class Parser:
         parent.children = [child1, child2]
         child1.parent, child2.parent = parent, parent
         return parent
-
-    def __repr__(self):
-        if not self.tree:
-            return "<Empty tree>"
-        curr_nodes = [self.tree]
-        res = ""
-        while curr_nodes:
-            new_nodes = []
-            for node in curr_nodes:
-                res += "{" + str(node) + "}\t"
-
-                if node.children:
-                    new_nodes += node.children
-            res += "\n"
-            curr_nodes = new_nodes
-
-        return res

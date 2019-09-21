@@ -27,7 +27,7 @@ class UnexpectedEOF(SyntaxError):
 
 class MissingParenthesisException(SyntaxError):
     def __init__(self, filename, position):
-        super().__init__(filename, position)
+        super().__init__(filename, position, "missing closing parenthesis")
 
 
 class IllegalCharacterException(SyntaxError):
