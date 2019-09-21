@@ -19,7 +19,7 @@ class Parser:
         return self.__parse_expression()
 
     def __parse_expression(self):
-        return self.__parse_expression()
+        return self.__parse_relation()
 
     def __parse_relation(self):
         left = self.__parse_term()
@@ -27,7 +27,7 @@ class Parser:
         if not parent:
             return left
 
-        expected_types = (TokenType.Operator.Equals, TokenType.Operator.LessThan, TokenType.Operator.MoreThan)
+        expected_types = (TokenType.OpEquals, TokenType.OpLessThan, TokenType.OpMoreThan)
 
         if parent.type not in expected_types:
             raise UnexpectedTokenException(self.filename, "expected either of these symbols: \'>\', \'<\', or \'=\'")
@@ -45,17 +45,14 @@ class Parser:
             if not parent:
                 return left
 
-            expected_types = (TokenType.Operator.Plus, TokenType.Operator.Minus)
+            expected_types = (TokenType.OpPlus, TokenType.OpMinus)
             if parent.type not in expected_types:
-                raise UnexpectedTokenException(self.filename,
-                                               "expected either of these symbols: \'+\', or \'-\', got {}".format(
-                                                   parent.type))
+                self.__lexer.push_back(parent)
+                return left
 
             right = self.__parse_factor()
 
             left = self.__make_binary_tree(AstNode(parent), left, right)
-
-        return left
 
     def __parse_factor(self):
 
@@ -65,18 +62,16 @@ class Parser:
             if not parent:
                 return left
 
-            if parent.type is not TokenType.Operator.Multiply:
-                # TODO implement
-                # self.__lexer.push_back(left)
-                print("Not implemented yet")
-                exit(-1)
+            if parent.type is not TokenType.OpMultiply:
+                self.__lexer.push_back(parent)
+                return left
 
     def __parse_primary(self):
         left = self.__lexer.get()
-        if left.type is TokenType.Delimiter.LeftParen:
+        if left.type is TokenType.LeftParen:
             left = self.__parse_expression()
 
-            if self.__lexer.get().type is not TokenType.Delimiter.RightParen:
+            if self.__lexer.get().type is not TokenType.RightParen:
                 raise UnexpectedTokenException(self.filename, "missing closing parenthesis")
 
         elif left.type is not TokenType.Literal:

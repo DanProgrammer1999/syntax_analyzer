@@ -1,23 +1,17 @@
-from enum import Enum
+from enum import Enum, auto
 
 
-class OperatorType(Enum):
-    Equals = 0
-    LessThan = 1
-    MoreThan = 2
-    Minus = 3
-    Plus = 4
-    Multiply = 5
+class TokenType(Enum):
+    Literal = auto()
+    LeftParen = auto()
+    RightParen = auto()
 
+    OpEquals = auto()
+    OpLessThan = auto()
+    OpMoreThan = auto()
+    OpMinus = auto()
+    OpPlus = auto()
+    OpMultiply = auto()
 
-class DelimiterType(Enum):
-    LeftParen = 0
-    RightParen = 1
-    Semicolon = 2
-    NewLine = 3
-
-
-class TokenType:
-    Operator = OperatorType
-    Delimiter = DelimiterType
-    Literal = 0
+    Unknown = auto()
+    Space = auto()
