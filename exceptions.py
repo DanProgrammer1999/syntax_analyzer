@@ -6,20 +6,31 @@ class Error(Exception):
         return repr(self.value)
 
 
-class LexicalException(Error):
-    def __init__(self, filename=None, position: tuple = None, custom_text=None):
-        text = "Lexical Exception"
-        if filename:
-            text += " in {}".format(filename)
-        if position:
-            text += " at line {}, position {}".format(position[0], position[1])
-        if custom_text:
-            text += ": {}".format(custom_text)
-        text += '.'
-        self.value = text
+class SyntaxError(Error):
+    def __init__(self, filename, position, text=None):
+        self.value = "Syntax error in file {} at position <{}:{}>".format(filename, position[0], position[1])
+        if text:
+            self.value += ": {}".format(text)
+
+        self.value += "."
 
 
-class IllegalCharacterException(LexicalException):
+class UnexpectedTokenException(SyntaxError):
+    def __init__(self, filename, position, token):
+        super().__init__(filename, position, "unexpected token: \'{}\'".format(token))
+
+
+class UnexpectedEOF(SyntaxError):
+    def __init__(self, filename, position):
+        super().__init__(filename, position, "reached end of file while parsing")
+
+
+class MissingParenthesisException(SyntaxError):
+    def __init__(self, filename, position):
+        super().__init__(filename, position, "missing closing parenthesis")
+
+
+class IllegalCharacterException(SyntaxError):
     def __init__(self, filename=None, position=None, character=None):
         text = "illegal character"
         if character:
@@ -27,7 +38,7 @@ class IllegalCharacterException(LexicalException):
         super().__init__(filename, position, text)
 
 
-class InvalidNumberFormatException(LexicalException):
+class InvalidNumberFormatException(SyntaxError):
     def __init__(self, filename=None, position=None, number=None):
         text = "bad number format: number{}starts with 0".format(" {} ".format(number) if number else " ")
         super().__init__(filename, position, text)
