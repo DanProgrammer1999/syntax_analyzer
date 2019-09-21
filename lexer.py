@@ -1,5 +1,6 @@
 from token_types import TokenType
-from exceptions import LexicalException
+from exceptions import LexicalException, InvalidNumberFormatException
+
 
 class Token:
     def __init__(self, token_type, literal_value=None):
@@ -19,8 +20,8 @@ class Lexer:
 
     def __init__(self, filename):
         self.filename = filename
-        self.line_number = 0
-        self.line_position = 0
+        self.line_number = 1
+        self.line_position = 1
 
         self.__fd = open(filename, 'r')
         self.__pushback = []
@@ -33,31 +34,43 @@ class Lexer:
         if self.__pushback:
             return self.__pushback.pop()
 
-        curr = self.__fd.read(1)
-        if not curr:
-            return None
+        token_type, value = self.__get_next()
 
+        while token_type is token_type.Space:
+            if not value:
+                return None
+
+            token_type, value = self.__get_next()
+
+        if token_type is TokenType.Literal:
+            curr = ""
+            while token_type is TokenType.Literal:
+                curr += value
+                token_type, value = self.__get_next()
+
+            if len(curr) > 1 and curr.startswith('0'):
+                raise InvalidNumberFormatException(self.filename, (self.line_number, self.line_position), curr)
+            if token_type is token_type.Space:
+                return Token(TokenType.Literal, curr)
+            else:
+                self.push_back(Token(token_type, value))
+                return Token(TokenType.Literal, curr)
+
+        return Token(token_type, value)
+
+    def __get_next(self):
+        curr = self.__fd.read(1)
         token_type = self.__resolve_type(curr)
-        if token_type == -1:
+        if token_type is TokenType.Unknown:
             raise LexicalException(self.filename, (self.line_number, self.line_position),
                                    "illegal character: \'{}\'".format(curr))
-        elif token_type == 0:
-            return self.get()
-        elif token_type is TokenType.Literal:
-            res = curr
-            while True:
-                curr = self.__fd.read(1)
-                if curr is None:
-                    return Token(token_type, curr)
-                elif curr.isdigit():
-                    res += curr
-                else:
-                    # If the current char is meaningful
-                    if curr not in " \n\t":
-                        self.push_back(Token(self.__resolve_type(curr)))
-                    return Token(token_type, res)
+        if curr == "\n":
+            self.line_number += 1
+            self.line_position = 1
         else:
-            return Token(token_type)
+            self.line_position += 1
+
+        return token_type, curr
 
     @staticmethod
     def __resolve_type(token):
@@ -80,6 +93,6 @@ class Lexer:
         if token.isdigit():
             return TokenType.Literal
         if token in " \n\t":
-            return 0
+            return TokenType.Space
 
-        return -1
+        return TokenType.Unknown
