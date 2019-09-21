@@ -1,5 +1,5 @@
 from token_types import TokenType
-from exceptions import LexicalException, InvalidNumberFormatException
+from exceptions import IllegalCharacterException, InvalidNumberFormatException
 
 
 class Token:
@@ -62,8 +62,7 @@ class Lexer:
         curr = self.__fd.read(1)
         token_type = self.__resolve_type(curr)
         if token_type is TokenType.Unknown:
-            raise LexicalException(self.filename, (self.line_number, self.line_position),
-                                   "illegal character: \'{}\'".format(curr))
+            raise IllegalCharacterException(self.filename, (self.line_number, self.line_position), curr)
         if curr == "\n":
             self.line_number += 1
             self.line_position = 1
