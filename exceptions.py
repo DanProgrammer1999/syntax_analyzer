@@ -15,6 +15,21 @@ class SyntaxError(Error):
         self.value += "."
 
 
+class UnexpectedTokenException(SyntaxError):
+    def __init__(self, filename, position, token):
+        super().__init__(filename, position, "unexpected token: {}".format(token))
+
+
+class UnexpectedEOF(SyntaxError):
+    def __init__(self, filename, position):
+        super().__init__(filename, position, "reached end of file while parsing")
+
+
+class MissingParenthesisException(SyntaxError):
+    def __init__(self, filename, position):
+        super().__init__(filename, position)
+
+
 class IllegalCharacterException(SyntaxError):
     def __init__(self, filename=None, position=None, character=None):
         text = "illegal character"

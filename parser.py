@@ -1,12 +1,15 @@
 from lexer import Lexer
 from token_types import TokenType
+from exceptions import UnexpectedTokenException, MissingParenthesisException, UnexpectedEOF
 
 
 class AstNode:
     def __init__(self, token):
         self.__token = token
         self.parent = None
-        self.children = None
+        self.children = []
+        # For ptree lib
+        self.name = self.__repr__()
 
     def __repr__(self):
         s = str(self.__token.type)
@@ -15,6 +18,7 @@ class AstNode:
 
         return s
 
+
 class Parser:
     def __init__(self, filename):
         self.filename = filename
@@ -22,7 +26,12 @@ class Parser:
         self.tree = self.__construct_tree()
 
     def __construct_tree(self):
-        return self.__parse_expression()
+        res = self.__parse_expression()
+        t = self.__lexer.get()
+        if t:
+            raise UnexpectedTokenException(self.filename, self.__lexer.get_position(), t)
+
+        return res
 
     def __parse_expression(self):
         return self.__parse_relation()
@@ -79,16 +88,20 @@ class Parser:
 
     def __parse_primary(self):
         left = self.__lexer.get()
+        if left is None:
+            raise UnexpectedEOF(self.filename, self.__lexer.get_position())
+
         if left.type is TokenType.LeftParen:
             left = self.__parse_expression()
 
-            if self.__lexer.get().type is not TokenType.RightParen:
-                raise UnexpectedTokenException(self.filename, "missing closing parenthesis")
+            closing_paren = self.__lexer.get()
+            if not closing_paren or closing_paren.type is not TokenType.RightParen:
+                raise MissingParenthesisException(self.filename, self.__lexer.get_position())
             return left
-
-        elif left.type is not TokenType.Literal:
-            raise UnexpectedTokenException(self.filename, "malformed expression: expected integer or parenthesis")
-        return AstNode(left)
+        elif left.type is TokenType.Literal:
+            return AstNode(left)
+        else:
+            raise UnexpectedTokenException(self.filename, self.__lexer.get_position(), left)
 
     @staticmethod
     def __make_binary_tree(parent: AstNode, child1: AstNode, child2: AstNode):
@@ -98,6 +111,8 @@ class Parser:
         return parent
 
     def __repr__(self):
+        if not self.tree:
+            return "<Empty tree>"
         curr_nodes = [self.tree]
         res = ""
         while curr_nodes:
@@ -111,20 +126,3 @@ class Parser:
             curr_nodes = new_nodes
 
         return res
-
-class Error(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class UnexpectedTokenException(Error):
-    def __init__(self, filename=None, text=None):
-        self.value = "Unexpected token exception"
-        if filename:
-            self.value += " in file {}".format(filename)
-
-        if text:
-            self.value += ": {}".format(text)
