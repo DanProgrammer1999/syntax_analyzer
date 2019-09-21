@@ -26,6 +26,9 @@ class Lexer:
         self.__fd = open(filename, 'r')
         self.__pushback = []
 
+    def get_position(self):
+        return self.line_number, self.line_position
+
     def push_back(self, token):
         self.__pushback.append(token)
 
