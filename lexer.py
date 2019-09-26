@@ -44,10 +44,9 @@ class Lexer:
             return None
 
         while token_type is token_type.Space:
+            token_type, value = self.__get_next()
             if not value:
                 return None
-
-            token_type, value = self.__get_next()
 
         if token_type is TokenType.Literal:
             curr = ""
