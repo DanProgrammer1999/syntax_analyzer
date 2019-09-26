@@ -1,6 +1,6 @@
-from lexer import Lexer
-from token_types import TokenType
-from exceptions import UnexpectedTokenException, MissingParenthesisException, UnexpectedEOF
+from Lexer.lexer import Lexer
+from Lexer.token_types import TokenType
+from Exceptions.exceptions import UnexpectedTokenException, MissingParenthesisException, UnexpectedEOF
 
 
 class AstNode:

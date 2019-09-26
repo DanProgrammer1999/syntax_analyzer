@@ -15,6 +15,8 @@ class SyntaxError(Error):
         self.value += "."
 
 
+# Parser Exceptions
+
 class UnexpectedTokenException(SyntaxError):
     def __init__(self, filename, position, token):
         super().__init__(filename, position, "unexpected token: \'{}\'".format(token))
@@ -30,8 +32,10 @@ class MissingParenthesisException(SyntaxError):
         super().__init__(filename, position, "missing closing parenthesis")
 
 
+# Lexer exceptions
+
 class IllegalCharacterException(SyntaxError):
-    def __init__(self, filename=None, position=None, character=None):
+    def __init__(self, filename, position, character=None):
         text = "illegal character"
         if character:
             text += ": \'{}\'".format(character)
@@ -39,6 +43,6 @@ class IllegalCharacterException(SyntaxError):
 
 
 class InvalidNumberFormatException(SyntaxError):
-    def __init__(self, filename=None, position=None, number=None):
+    def __init__(self, filename, position, number):
         text = "bad number format: number{}starts with 0".format(" {} ".format(number) if number else " ")
         super().__init__(filename, position, text)

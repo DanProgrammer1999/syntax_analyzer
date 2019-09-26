@@ -1,5 +1,5 @@
-from token_types import TokenType
-from exceptions import IllegalCharacterException, InvalidNumberFormatException
+from Lexer.token_types import TokenType
+from Exceptions.exceptions import IllegalCharacterException, InvalidNumberFormatException
 
 
 class Token:
