@@ -1,17 +1,25 @@
-try:
-    import pptree
-except ImportError:
-    pptree = None
-    print("To visualize ast tree, you can use module \'pptree\'.\nYou can use pip to install it\n\n")
+# Try to import pptree module
 
 from Parser.parser import Parser
 from Calculator import calculator
 
-filename = input("Input name of the file with the expression:\t")
-tree = Parser().parse(filename)
 
-if pptree and tree:
-    pptree.print_tree(tree)
+def main():
+    filename = input("Input name of the file with the expression:\t")
+    tree = Parser().parse(filename)
+    if not tree:
+        print("File is empty")
+        exit(0)
 
-res = calculator.evaluate_tree(tree)
-print("Result:", res)
+    try:
+        import pptree
+        pptree.print_tree(tree)
+    except ImportError:
+        print("You can use module \'pptree\' to visualize ast tree.\nUse pip to install it\n\n")
+
+    res = calculator.evaluate_tree(tree)
+    print("Result:", res)
+
+
+if __name__ == "__main__":
+    main()
