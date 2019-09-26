@@ -37,6 +37,7 @@ class Lexer:
     def get(self):
 
         if self.__pushback:
+            self.line_position += 1
             return self.__pushback.pop()
 
         token_type, value = self.__get_next()
@@ -55,7 +56,7 @@ class Lexer:
                 token_type, value = self.__get_next()
 
             if len(curr) > 1 and curr.startswith('0'):
-                raise InvalidNumberFormatException(self.filename, (self.line_number, self.line_position), curr)
+                raise InvalidNumberFormatException(self.filename, (self.line_number, self.line_position - 1), curr)
             if not token_type or token_type is token_type.Space:
                 return Token(TokenType.Literal, curr)
             else:
@@ -65,9 +66,14 @@ class Lexer:
         return Token(token_type, value)
 
     def __get_next(self):
+        if self.__fd.closed:
+            return None, None
+
         curr = self.__fd.read(1)
         if not curr:
+            self.__fd.close()
             return None, None
+
         token_type = self.__resolve_type(curr)
         if token_type is TokenType.Unknown:
             raise IllegalCharacterException(self.filename, (self.line_number, self.line_position), curr)

@@ -30,16 +30,16 @@ class AstNode:
 
 class Parser:
     def __init__(self, filename=None):
+        self.filename = filename
         if filename:
             self.__lexer = Lexer(filename)
-            self.filename = filename
 
     def parse(self, filename=None):
         if filename:
             self.filename = filename
             self.__lexer = Lexer(filename)
 
-        if not filename and not self.filename:
+        if not self.filename:
             print("No filename provided!")
             return None
 
@@ -69,6 +69,8 @@ class Parser:
             return left
 
         right = self.__parse_term()
+        if not right:
+            raise UnexpectedEOF(self.filename, self.__lexer.get_position())
 
         return self.__make_binary_tree(AstNode(parent), left, right)
 
@@ -84,6 +86,9 @@ class Parser:
                 break
 
             right = self.__parse_factor()
+            if not right:
+                raise UnexpectedEOF(self.filename, self.__lexer.get_position())
+
             left = self.__make_binary_tree(AstNode(parent), left, right)
             parent = self.__lexer.get()
 
@@ -100,6 +105,9 @@ class Parser:
                 break
 
             right = self.__parse_primary()
+            if not right:
+                raise UnexpectedEOF(self.filename, self.__lexer.get_position())
+
             left = self.__make_binary_tree(AstNode(parent), left, right)
             parent = self.__lexer.get()
 
@@ -108,7 +116,8 @@ class Parser:
     def __parse_primary(self):
         left = self.__lexer.get()
         if left is None:
-            raise UnexpectedEOF(self.filename, self.__lexer.get_position())
+            # Could be an empty file
+            return left
 
         if left.type is TokenType.LeftParen:
             left = self.__parse_expression()
